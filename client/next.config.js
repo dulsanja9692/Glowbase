@@ -5,6 +5,7 @@ const nextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "http", hostname: "localhost" },
+      { protocol: "https", hostname: "**.vercel.app" },
     ],
   },
   // Every page here requires a valid session (see ProtectedRoute), so we
