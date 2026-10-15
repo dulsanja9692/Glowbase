@@ -5,10 +5,13 @@ import { useCart } from "../context/CartContext";
 import { api } from "../lib/api";
 
 const STATUS_STYLE = {
-  Processing: "bg-amber-100 text-amber-700",
-  Shipped: "bg-purple-soft/40 text-purple-deep",
-  Delivered: "bg-green-100 text-green-700",
-  Cancelled: "bg-red-100 text-red-600",
+  Processing: "bg-amber-100 text-amber-800 border border-amber-300",
+  "Ready to Ship": "bg-blue-100 text-blue-800 border border-blue-300",
+  "In Transit": "bg-indigo-100 text-indigo-800 border border-indigo-300",
+  "Out for Delivery": "bg-purple-100 text-purple-800 border border-purple-300",
+  Delivered: "bg-green-100 text-green-800 border border-green-300",
+  Shipped: "bg-purple-soft/40 text-purple-deep border border-purple-200",
+  Cancelled: "bg-red-100 text-red-700 border border-red-300",
 };
 
 export default function Orders() {

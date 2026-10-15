@@ -112,11 +112,25 @@ async function listOrders(req, res) {
   res.json({ orders: populated });
 }
 
-// PATCH /api/orders/:id/status  (admin, superadmin) - sellers can only update their own orders
+// PATCH /api/orders/:id/status  (admin, superadmin) - sellers & superadmins update and complete their orders
 async function updateStatus(req, res) {
-  const { status } = req.body;
-  const allowed = ["Processing", "Shipped", "Delivered", "Cancelled"];
-  if (!allowed.includes(status)) return res.status(400).json({ message: "Invalid status." });
+  let { status } = req.body;
+  const allowed = [
+    "Processing",
+    "Ready to Ship",
+    "In Transit",
+    "Out for Delivery",
+    "Out For Delivery",
+    "Delivered",
+    "Shipped",
+    "Cancelled",
+  ];
+  if (!status || !allowed.includes(status)) {
+    return res.status(400).json({ message: "Invalid status. Allowed: Processing, Ready to Ship, In Transit, Out for Delivery, Delivered, Cancelled" });
+  }
+
+  // Normalize casing
+  if (status === "Out For Delivery") status = "Out for Delivery";
 
   const existingOrder = await Order.findById(req.params.id);
   if (!existingOrder) return res.status(404).json({ message: "Order not found." });
