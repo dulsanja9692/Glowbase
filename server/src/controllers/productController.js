@@ -30,7 +30,14 @@ async function createProduct(req, res) {
     return res.status(400).json({ message: "name, category and price are required." });
   }
 
-  const finalImage = req.file ? `/uploads/${req.file.filename}` : imageUrl;
+  let finalImage = imageUrl;
+  if (req.file && req.file.buffer) {
+    const mime = req.file.mimetype || "image/jpeg";
+    finalImage = `data:${mime};base64,${req.file.buffer.toString("base64")}`;
+  } else if (req.file && req.file.filename) {
+    finalImage = `/uploads/${req.file.filename}`;
+  }
+
   if (!finalImage) return res.status(400).json({ message: "A product image (file or imageUrl) is required." });
 
   const userId = req.user.id || req.user._id;
@@ -59,8 +66,15 @@ async function updateProduct(req, res) {
   fields.forEach((f) => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
   if (req.body.price !== undefined) updates.price = Number(req.body.price);
   if (req.body.stock !== undefined) updates.stock = Number(req.body.stock);
-  if (req.file) updates.imageUrl = `/uploads/${req.file.filename}`;
-  else if (req.body.imageUrl) updates.imageUrl = req.body.imageUrl;
+
+  if (req.file && req.file.buffer) {
+    const mime = req.file.mimetype || "image/jpeg";
+    updates.imageUrl = `data:${mime};base64,${req.file.buffer.toString("base64")}`;
+  } else if (req.file && req.file.filename) {
+    updates.imageUrl = `/uploads/${req.file.filename}`;
+  } else if (req.body.imageUrl) {
+    updates.imageUrl = req.body.imageUrl;
+  }
 
   const updated = await Product.updateById(req.params.id, updates);
   res.json({ product: updated });

@@ -25,8 +25,47 @@ export default function ProductsTab() {
   function onFileChange(e) {
     const f = e.target.files[0];
     if (!f) return;
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
+
+    // Resize image using browser Canvas to max 800px & 85% quality so it is lightweight & cloud-safe
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_DIM = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height && width > MAX_DIM) {
+          height = Math.round((height * MAX_DIM) / width);
+          width = MAX_DIM;
+        } else if (height > MAX_DIM) {
+          width = Math.round((width * MAX_DIM) / height);
+          height = MAX_DIM;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const optimizedFile = new File([blob], (f.name || "upload").replace(/\.[^/.]+$/, "") + ".jpg", {
+              type: "image/jpeg",
+            });
+            setFile(optimizedFile);
+            setPreview(canvas.toDataURL("image/jpeg", 0.85));
+            setForm((prev) => ({ ...prev, imageUrl: "" }));
+          } else {
+            setFile(f);
+            setPreview(event.target.result);
+          }
+        }, "image/jpeg", 0.85);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(f);
   }
 
   function startEdit(p) {
