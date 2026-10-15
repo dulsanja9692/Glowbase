@@ -14,8 +14,7 @@ async function register(req, res) {
   if (existing) return res.status(409).json({ message: "An account with this email already exists." });
 
   const user = await User.createUser({ name, email, password, role: "user" });
-  const token = signToken(user);
-  res.status(201).json({ token, user: User.toSafeObject(user) });
+  res.status(201).json({ message: "Account created successfully. Please log in.", user: User.toSafeObject(user) });
 }
 
 // POST /api/auth/login

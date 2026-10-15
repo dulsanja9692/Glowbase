@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
 
@@ -10,7 +11,17 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (router.query.registered === "true") {
+      setSuccessMsg("Account created successfully! Please log in with your credentials.");
+      if (router.query.email) {
+        setEmail(String(router.query.email));
+      }
+    }
+  }, [router.query]);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -32,6 +43,12 @@ export default function Login() {
         <p className="text-gray-500 text-sm text-center mb-8">Log in to your GlowBase account</p>
 
         <form onSubmit={onSubmit} className="bg-white border border-lavender-deep rounded-2xl p-6 flex flex-col gap-3.5">
+          {successMsg && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-lg p-3 flex items-center gap-2">
+              <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+              <span>{successMsg}</span>
+            </div>
+          )}
           {error && <div className="bg-red-50 text-red-600 text-sm rounded-lg p-2.5">{error}</div>}
           <div>
             <label className="text-xs font-bold text-gray-500 uppercase">Email</label>

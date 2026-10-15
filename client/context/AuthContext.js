@@ -32,9 +32,7 @@ export function AuthProvider({ children }) {
 
   async function register(name, email, password) {
     const data = await api("/auth/register", { method: "POST", body: { name, email, password } });
-    setToken(data.token);
-    setUser(data.user);
-    return data.user;
+    return data;
   }
 
   // Re-checks the token against the server. Used after bfcache restores
