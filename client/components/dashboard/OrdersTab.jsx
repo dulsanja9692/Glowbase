@@ -33,7 +33,7 @@ export default function OrdersTab() {
           <span className="font-bold">#{o._id.slice(-6).toUpperCase()}</span>
           <span>{o.customer?.name}</span>
           <span>{o.items.length}</span>
-          <span>${o.total}</span>
+          <span>Rs. {o.total?.toLocaleString()}</span>
           <button onClick={() => cycleStatus(o)} className="text-left">
             <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${STATUS_STYLE[o.status]}`}>{o.status}</span>
           </button>

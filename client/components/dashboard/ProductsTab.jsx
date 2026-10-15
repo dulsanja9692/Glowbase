@@ -88,7 +88,7 @@ export default function ProductsTab() {
               <option>Hair</option><option>Skin</option><option>Tools</option>
             </select>
           </FormField>
-          <FormField label="Price ($)"><input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="in" /></FormField>
+          <FormField label="Price (Rs.)"><input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="in" /></FormField>
           <FormField label="Stock"><input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="in" /></FormField>
           <div className="md:col-span-2 flex gap-2.5 mt-1">
             <button onClick={submit} className="px-4.5 px-[18px] py-2.5 rounded-full bg-purple text-white font-bold text-sm">Save product</button>
@@ -111,7 +111,7 @@ export default function ProductsTab() {
                 <img src={p.imageUrl.startsWith("http") ? p.imageUrl : `${API_BASE}${p.imageUrl}`} alt="" className="w-7 h-7 rounded-lg object-cover" /> {p.name}
               </span>
               <span className="text-gray-500">{p.category}</span>
-              <span>${p.price}</span>
+              <span>Rs. {p.price?.toLocaleString()}</span>
               <span className={`font-bold ${p.stock === 0 ? "text-red-500" : p.stock < 10 ? "text-amber-600" : "text-green-600"}`}>{p.stock}</span>
               {user?.role === "superadmin" && <span className="text-gray-400 text-xs">{p.seller?.name}</span>}
               <div className="flex gap-2">

@@ -67,7 +67,7 @@ export default function Shop() {
                     {p.stock > 0 && p.stock < 10 && <span className="text-amber-600 font-bold ml-1.5">Only {p.stock} left</span>}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-serif text-lg font-semibold">${p.price}</span>
+                    <span className="font-serif text-lg font-semibold">Rs. {p.price?.toLocaleString()}</span>
                     <button disabled={p.stock === 0} onClick={() => handleAdd(p._id)}
                       className={`px-3 py-1.5 rounded-full text-xs font-bold ${p.stock === 0 ? "bg-lavender-deep text-gray-400" : "bg-black text-white"}`}>
                       Add

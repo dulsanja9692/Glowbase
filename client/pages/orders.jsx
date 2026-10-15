@@ -40,7 +40,7 @@ export default function Orders() {
                     <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${STATUS_STYLE[o.status]}`}>{o.status}</span>
                   </div>
                   <div className="text-sm text-gray-500 mb-1">{o.items.map((i) => i.name).join(", ")}</div>
-                  <div className="text-xs text-gray-400">{new Date(o.createdAt).toLocaleDateString()} · ${o.total}</div>
+                  <div className="text-xs text-gray-400">{new Date(o.createdAt).toLocaleDateString()} · Rs. {o.total?.toLocaleString()}</div>
                 </div>
               ))}
             </div>

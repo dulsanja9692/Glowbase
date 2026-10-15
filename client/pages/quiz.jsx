@@ -159,7 +159,7 @@ export default function Quiz() {
                         <Star size={11} fill="#7C3AED" color="#7C3AED" /> {p.rating}
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="font-serif text-sm font-semibold">${p.price}</span>
+                        <span className="font-serif text-sm font-semibold">Rs. {p.price?.toLocaleString()}</span>
                         <button onClick={() => handleAdd(p._id)}
                           className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center">
                           <ShoppingBag size={12} />

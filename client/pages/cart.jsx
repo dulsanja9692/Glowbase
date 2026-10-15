@@ -74,7 +74,7 @@ export default function Cart() {
                     <img src={i.imageUrl} alt={i.name} className="w-11 h-11 rounded-lg object-cover" />
                     <div>
                       <div className="font-bold text-sm">{i.name}</div>
-                      <div className="text-xs text-gray-500">${i.price} each</div>
+                      <div className="text-xs text-gray-500">Rs. {i.price?.toLocaleString()} each</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5">
@@ -96,7 +96,7 @@ export default function Cart() {
 
             {error && <div className="bg-red-50 text-red-600 text-sm rounded-lg p-2.5 mb-4">{error}</div>}
 
-            <div className="flex justify-between text-base font-bold mb-4"><span>Total</span><span>${total}</span></div>
+            <div className="flex justify-between text-base font-bold mb-4"><span>Total</span><span>Rs. {total?.toLocaleString()}</span></div>
             <button onClick={checkout} disabled={placing} className="w-full py-3.5 rounded-full bg-black text-white font-bold flex items-center justify-center gap-2">
               {placing ? "Processing…" : <>Checkout <ArrowRight size={14} /></>}
             </button>

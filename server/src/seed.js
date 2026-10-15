@@ -47,11 +47,11 @@ async function seed() {
   const admin1Id = admin1.id || admin1._id;
   const admin2Id = admin2.id || admin2._id;
   const products = await Product.insertMany([
-    { name: "Silk Repair Shampoo", category: "Hair", price: 24, stock: 42, seller: admin1Id, imageUrl: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&q=60" },
-    { name: "Argan Gloss Conditioner", category: "Hair", price: 26, stock: 8, seller: admin1Id, imageUrl: "https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=400&q=60" },
-    { name: "Overnight Renewal Serum", category: "Skin", price: 38, stock: 15, seller: admin2Id, imageUrl: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&q=60" },
-    { name: "Rose Clay Mask", category: "Skin", price: 22, stock: 30, seller: admin2Id, imageUrl: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400&q=60" },
-    { name: "Ceramic Round Brush", category: "Tools", price: 32, stock: 20, seller: admin1Id, imageUrl: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=400&q=60" },
+    { name: "Silk Repair Shampoo", category: "Hair", price: 2400, stock: 42, seller: admin1Id, imageUrl: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&q=60" },
+    { name: "Argan Gloss Conditioner", category: "Hair", price: 2600, stock: 8, seller: admin1Id, imageUrl: "https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=400&q=60" },
+    { name: "Overnight Renewal Serum", category: "Skin", price: 3800, stock: 15, seller: admin2Id, imageUrl: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&q=60" },
+    { name: "Rose Clay Mask", category: "Skin", price: 2200, stock: 30, seller: admin2Id, imageUrl: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400&q=60" },
+    { name: "Ceramic Round Brush", category: "Tools", price: 3200, stock: 20, seller: admin1Id, imageUrl: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=400&q=60" },
   ]);
 
   console.log("Creating a sample order...");

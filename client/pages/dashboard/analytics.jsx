@@ -28,7 +28,7 @@ export default function Analytics() {
   }, []);
 
   const cards = stats ? [
-    { label: "Revenue (paid orders)", value: `$${stats.revenue}`, icon: TrendingUp, tone: "text-green-600 bg-green-50" },
+    { label: "Revenue (paid orders)", value: `Rs. ${stats.revenue.toLocaleString()}`, icon: TrendingUp, tone: "text-green-600 bg-green-50" },
     { label: "Total orders", value: stats.orders, icon: ShoppingBag, tone: "text-purple bg-purple-soft/20" },
     { label: "Team accounts", value: stats.accounts, icon: Users, tone: "text-purple-deep bg-purple-soft/20" },
     { label: "Low stock alerts", value: stats.lowStock, icon: AlertTriangle, tone: "text-red-600 bg-red-50" },
