@@ -128,10 +128,9 @@ async function updateStatus(req, res) {
     "Out For Delivery",
     "Delivered",
     "Shipped",
-    "Cancelled",
   ];
   if (!status || !allowed.includes(status)) {
-    return res.status(400).json({ message: "Invalid status. Allowed: Processing, Ready to Ship, In Transit, Out for Delivery, Delivered, Cancelled" });
+    return res.status(400).json({ message: "Invalid status. Allowed: Processing, Ready to Ship, In Transit, Out for Delivery, Delivered" });
   }
 
   // Normalize casing

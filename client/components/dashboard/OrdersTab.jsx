@@ -8,7 +8,6 @@ const ORDER_STATUSES = [
   "In Transit",
   "Out for Delivery",
   "Delivered",
-  "Cancelled",
 ];
 
 const STATUS_CONFIG = {
