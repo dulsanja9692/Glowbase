@@ -17,7 +17,7 @@ function formatUserDoc(doc, { includePassword = false } = {}) {
  * Create a new user document. Hashes the password unless skipHash is true.
  * Returns the user object with `id` and `_id` fields.
  */
-async function createUser({ name, email, password, role = "user", avatarUrl = "", isActive = true, skipHash = false }) {
+async function createUser({ name, email, password, role = "user", avatarUrl = "", address = "", phone = "", isActive = true, skipHash = false }) {
   if (!skipHash) {
     const salt = await bcrypt.genSalt(10);
     password = await bcrypt.hash(password, salt);
@@ -29,6 +29,8 @@ async function createUser({ name, email, password, role = "user", avatarUrl = ""
     password,
     role,
     avatarUrl,
+    address,
+    phone,
     isActive,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -75,6 +77,8 @@ function toSafeObject(user) {
     email: user.email,
     role: user.role,
     avatarUrl: user.avatarUrl || "",
+    address: user.address || "",
+    phone: user.phone || "",
     createdAt: user.createdAt,
   };
 }

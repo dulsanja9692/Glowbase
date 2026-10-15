@@ -41,6 +41,12 @@ export default function Orders() {
                   </div>
                   <div className="text-sm text-gray-500 mb-1">{o.items.map((i) => i.name).join(", ")}</div>
                   <div className="text-xs text-gray-400">{new Date(o.createdAt).toLocaleDateString()} · Rs. {o.total?.toLocaleString()}</div>
+                  {o.shippingAddress && (
+                    <div className="text-xs text-gray-500 mt-1.5 flex items-center gap-1.5">
+                      <span>📍 {o.shippingAddress}</span>
+                      {o.phone && <span>· 📞 {o.phone}</span>}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

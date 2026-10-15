@@ -41,6 +41,8 @@ async function seed() {
     email: "ishara@client.lk",
     password: "password123",
     role: "user",
+    address: "No. 12, Flower Road, Colombo 07",
+    phone: "+94 77 123 4567",
   });
 
   console.log("Creating products...");
@@ -62,6 +64,7 @@ async function seed() {
     items: [{ product: firstProdId, name: products[0].name, price: products[0].price, quantity: 2, seller: admin1Id }],
     total: products[0].price * 2,
     shippingAddress: "No. 12, Flower Road, Colombo 07",
+    phone: "+94 77 123 4567",
     payment: { method: "mock-card", status: "paid", reference: "MOCK-SEED-0001" },
   });
 

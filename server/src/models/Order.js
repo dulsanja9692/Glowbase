@@ -13,7 +13,7 @@ function formatOrderDoc(doc) {
 /**
  * Create a new order document.
  */
-async function createOrder({ customer, items, total, shippingAddress = "", payment }) {
+async function createOrder({ customer, items, total, shippingAddress = "", phone = "", payment }) {
   const data = {
     customer, // user document ID
     items,    // array of { product, name, price, quantity }
@@ -21,6 +21,7 @@ async function createOrder({ customer, items, total, shippingAddress = "", payme
     status: "Processing",
     payment: payment || { method: "mock-card", status: "pending", reference: "" },
     shippingAddress,
+    phone,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

@@ -3,10 +3,17 @@ const Product = require("../models/Product");
 const User = require("../models/User");
 
 // POST /api/orders  (user) - creates an order from cart items after "payment"
-// { items: [{ productId, quantity }], shippingAddress, paymentReference }
+// { items: [{ productId, quantity }], shippingAddress, phone, paymentReference }
 async function createOrder(req, res) {
-  const { items, shippingAddress, paymentReference } = req.body;
+  const { items, shippingAddress, phone, paymentReference } = req.body;
   if (!items || !items.length) return res.status(400).json({ message: "Cart is empty." });
+
+  if (!shippingAddress || !shippingAddress.trim()) {
+    return res.status(400).json({ message: "Shipping address is required." });
+  }
+  if (!phone || !phone.trim()) {
+    return res.status(400).json({ message: "Phone number is required." });
+  }
 
   const resolvedItems = [];
   let total = 0;
@@ -34,18 +41,28 @@ async function createOrder(req, res) {
   }
 
   const userId = req.user.id || req.user._id;
+
+  // 1. Create the order with customer details
   const order = await Order.createOrder({
     customer: userId,
     items: resolvedItems,
     total,
-    shippingAddress,
+    shippingAddress: shippingAddress.trim(),
+    phone: phone.trim(),
     payment: { method: "mock-card", status: "paid", reference: paymentReference || `MOCK-${Date.now()}` },
+  });
+
+  // 2. Automatically update customer profile with latest address and phone
+  // so future checkouts auto-populate seamlessly
+  await User.updateById(userId, {
+    address: shippingAddress.trim(),
+    phone: phone.trim(),
   });
 
   res.status(201).json({ order });
 }
 
-// GET /api/orders/mine  (user) - the logged-in customer's own orders
+// GET /api/orders/mine  (user) - the logged-in customer's own orders (strictly private)
 async function myOrders(req, res) {
   const userId = req.user.id || req.user._id;
   const orders = await Order.findByCustomer(userId);
@@ -71,12 +88,21 @@ async function listOrders(req, res) {
     });
   }
 
-  // Populate customer info
+  // Populate customer info for seller fulfillment
   const customerIds = [...new Set(orders.map((o) => o.customer))];
   const customerMap = {};
   for (const cid of customerIds) {
     const customer = await User.findById(cid);
-    if (customer) customerMap[cid] = { _id: customer.id, id: customer.id, name: customer.name, email: customer.email };
+    if (customer) {
+      customerMap[cid] = {
+        _id: customer.id,
+        id: customer.id,
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone || "",
+        address: customer.address || "",
+      };
+    }
   }
   const populated = orders.map((o) => ({
     ...o,
