@@ -54,8 +54,15 @@ export default function Shop() {
             {products.map((p) => (
               <div key={p._id} className="bg-white rounded-2xl overflow-hidden border border-lavender-deep hover:shadow-xl hover:-translate-y-0.5 transition-all">
                 <div className="h-36 overflow-hidden bg-lavender">
-                  <img src={p.imageUrl.startsWith("http") ? p.imageUrl : `${(process.env.NEXT_PUBLIC_API_URL || "").replace("/api", "")}${p.imageUrl}`}
-                    alt={p.name} className="w-full h-full object-cover" />
+                  <img
+                    src={
+                      (p.imageUrl?.startsWith("http") || p.imageUrl?.startsWith("data:"))
+                        ? p.imageUrl
+                        : `${(process.env.NEXT_PUBLIC_API_URL || "").replace("/api", "")}${p.imageUrl || ""}`
+                    }
+                    alt={p.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="p-3.5">
                   <div className="text-[11px] font-bold uppercase tracking-wide text-purple">{p.category}</div>

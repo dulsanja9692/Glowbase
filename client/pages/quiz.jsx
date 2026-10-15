@@ -150,8 +150,11 @@ export default function Quiz() {
                 {recommended.products.map((p) => (
                   <div key={p._id} className="border border-lavender-deep rounded-2xl overflow-hidden">
                     <div className="h-24 overflow-hidden bg-lavender">
-                      <img src={p.imageUrl.startsWith("http") ? p.imageUrl : `${API_BASE}${p.imageUrl}`}
-                        alt={p.name} className="w-full h-full object-cover" />
+                      <img
+                        src={(p.imageUrl?.startsWith("http") || p.imageUrl?.startsWith("data:")) ? p.imageUrl : `${API_BASE}${p.imageUrl || ""}`}
+                        alt={p.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div className="p-3">
                       <div className="font-bold text-sm leading-tight mb-1">{p.name}</div>

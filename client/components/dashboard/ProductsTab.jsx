@@ -77,7 +77,7 @@ export default function ProductsTab() {
       stock: p.stock !== undefined ? p.stock : "",
       imageUrl: p.imageUrl || "",
     });
-    setPreview(p.imageUrl ? (p.imageUrl.startsWith("http") ? p.imageUrl : `${API_BASE}${p.imageUrl}`) : "");
+    setPreview(p.imageUrl ? ((p.imageUrl.startsWith("http") || p.imageUrl.startsWith("data:")) ? p.imageUrl : `${API_BASE}${p.imageUrl}`) : "");
     setFile(null);
     setShowForm(true);
   }
@@ -219,7 +219,15 @@ export default function ProductsTab() {
           return (
             <div key={p._id || p.id} className={`grid ${user?.role === "superadmin" ? "grid-cols-6" : "grid-cols-5"} px-4 py-2.5 items-center border-t border-lavender-deep text-sm hover:bg-lavender`}>
               <span className="flex items-center gap-2 font-semibold">
-                <img src={p.imageUrl?.startsWith("http") ? p.imageUrl : `${API_BASE}${p.imageUrl}`} alt="" className="w-7 h-7 rounded-lg object-cover" /> {p.name}
+                <img
+                  src={
+                    (p.imageUrl?.startsWith("http") || p.imageUrl?.startsWith("data:"))
+                      ? p.imageUrl
+                      : `${API_BASE}${p.imageUrl || ""}`
+                  }
+                  alt=""
+                  className="w-7 h-7 rounded-lg object-cover"
+                /> {p.name}
               </span>
               <span className="text-gray-500">{p.category}</span>
               <span>Rs. {p.price?.toLocaleString()}</span>
