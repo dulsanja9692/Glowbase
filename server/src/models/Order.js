@@ -59,8 +59,8 @@ async function findById(id) {
 /**
  * Update an order's status.
  */
-async function updateStatus(id, status) {
-  await ordersRef.doc(id).update({ status, updatedAt: new Date().toISOString() });
+async function updateStatus(id, status, extra = {}) {
+  await ordersRef.doc(id).update({ status, updatedAt: new Date().toISOString(), ...extra });
   return findById(id);
 }
 

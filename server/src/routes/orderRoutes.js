@@ -9,6 +9,6 @@ const router = express.Router();
 router.post("/", protect, asyncH(createOrder)); // any logged-in customer
 router.get("/mine", protect, asyncH(myOrders));
 router.get("/", protect, requireRole("admin", "superadmin"), asyncH(listOrders));
-router.patch("/:id/status", protect, requireRole("admin", "superadmin"), asyncH(updateStatus));
+router.patch("/:id/status", protect, asyncH(updateStatus));
 
 module.exports = router;

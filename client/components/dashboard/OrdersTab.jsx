@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MapPin, Phone, CheckCircle, Truck, Package, Clock, XCircle } from "lucide-react";
+import { MapPin, Phone, CheckCircle, Truck, Package, Clock, XCircle, RefreshCw } from "lucide-react";
 import { api } from "../../lib/api";
 
 const ORDER_STATUSES = [
@@ -42,11 +42,21 @@ export default function OrdersTab() {
   const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   function load() {
-    api("/orders").then((d) => setOrders(d.orders || []));
+    setRefreshing(true);
+    api("/orders")
+      .then((d) => setOrders(d.orders || []))
+      .catch((err) => console.error(err))
+      .finally(() => setRefreshing(false));
   }
-  useEffect(load, []);
+
+  useEffect(() => {
+    load();
+    const timer = setInterval(load, 15000);
+    return () => clearInterval(timer);
+  }, []);
 
   async function handleStatusChange(order, newStatus) {
     if (order.status === newStatus) return;
@@ -68,6 +78,20 @@ export default function OrdersTab() {
 
   return (
     <div>
+      <div className="flex justify-between items-center mb-3">
+        <div className="text-xs text-gray-500 font-medium">
+          Manage fulfillment for {orders.length} order(s)
+        </div>
+        <button
+          onClick={load}
+          disabled={refreshing}
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-lavender-deep bg-white hover:bg-lavender text-gray-700 transition"
+        >
+          <RefreshCw size={12} className={refreshing ? "animate-spin" : ""} />
+          <span>{refreshing ? "Syncing..." : "Sync Orders"}</span>
+        </button>
+      </div>
+
       {toast && (
         <div className="bg-purple-soft/30 text-purple-deep text-sm rounded-lg p-2.5 mb-3 font-medium">
           {toast}

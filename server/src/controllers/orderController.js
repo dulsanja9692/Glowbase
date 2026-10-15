@@ -19,8 +19,9 @@ async function createOrder(req, res) {
   let total = 0;
 
   for (const line of items) {
-    const product = await Product.findById(line.productId);
-    if (!product) return res.status(404).json({ message: `Product ${line.productId} not found.` });
+    const requestedId = line.productId || line.product;
+    const product = await Product.findById(requestedId);
+    if (!product) return res.status(404).json({ message: `Product ${requestedId} not found.` });
     if (product.stock < line.quantity) {
       return res.status(400).json({ message: `${product.name} only has ${product.stock} in stock.` });
     }
@@ -112,7 +113,11 @@ async function listOrders(req, res) {
   res.json({ orders: populated });
 }
 
-// PATCH /api/orders/:id/status  (admin, superadmin) - sellers & superadmins update and complete their orders
+// PATCH /api/orders/:id/status
+// - superadmin: can update any order to any valid status
+// - admin (seller): can update orders containing their products to any valid status
+// - user (customer): can ONLY update their own order to "Delivered", AND ONLY IF all preceding steps
+//   have been completed by the seller (Order must be "Out for Delivery")
 async function updateStatus(req, res) {
   let { status } = req.body;
   const allowed = [
@@ -136,9 +141,38 @@ async function updateStatus(req, res) {
   if (!existingOrder) return res.status(404).json({ message: "Order not found." });
 
   const userId = req.user.id || req.user._id;
+  const userRole = req.user.role;
+  let extraUpdateFields = {};
 
-  // Sellers (admin) can ONLY update status if the order belongs to their products
-  if (req.user.role === "admin") {
+  if (userRole === "user") {
+    // 1. Verify customer owns this order
+    const customerId = typeof existingOrder.customer === "object"
+      ? (existingOrder.customer.id || existingOrder.customer._id)
+      : existingOrder.customer;
+
+    if (String(customerId) !== String(userId)) {
+      return res.status(403).json({ message: "You can only update your own orders." });
+    }
+
+    // 2. Customer can only select "Delivered"
+    if (status !== "Delivered") {
+      return res.status(403).json({ message: "Customers can only confirm an order as Delivered." });
+    }
+
+    // 3. Customer can only mark "Delivered" if all other preceding steps have been updated in order by the seller
+    const validPreceding = ["Out for Delivery", "Shipped"];
+    if (!validPreceding.includes(existingOrder.status)) {
+      return res.status(400).json({
+        message: "You can only mark this order as Delivered once all preceding fulfillment steps have been completed by the seller (Order must be Out for Delivery).",
+      });
+    }
+
+    extraUpdateFields = {
+      deliveredBy: "customer",
+      deliveredAt: new Date().toISOString(),
+    };
+  } else if (userRole === "admin") {
+    // Sellers (admin) can ONLY update status if the order belongs to their products
     const sellerProducts = await Product.findBySeller(userId);
     const sellerProductIds = new Set(sellerProducts.map((p) => p.id || p._id));
 
@@ -151,9 +185,11 @@ async function updateStatus(req, res) {
     if (!isSellerOrder) {
       return res.status(403).json({ message: "You can only update orders for your own products." });
     }
+  } else if (userRole !== "superadmin") {
+    return res.status(403).json({ message: "Unauthorized." });
   }
 
-  const order = await Order.updateStatus(req.params.id, status);
+  const order = await Order.updateStatus(req.params.id, status, extraUpdateFields);
   res.json({ order });
 }
 
