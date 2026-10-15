@@ -1,49 +1,129 @@
-const mongoose = require("mongoose");
+const { db } = require("../config/firebase");
 const bcrypt = require("bcryptjs");
 
-const userSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true, minlength: 6, select: false },
-    // Three-tier role system:
-    //  - user: customer, can browse & purchase
-    //  - admin: seller, can manage their own products + view/update orders
-    //  - superadmin: full control incl. managing admins/users + analytics
-    role: { type: String, enum: ["user", "admin", "superadmin"], default: "user" },
-    avatarUrl: { type: String, default: "" },
-    isActive: { type: Boolean, default: true },
-  },
-  { timestamps: true }
-);
+const COLLECTION = "users";
+const usersRef = db.collection(COLLECTION);
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  // Used by sellerRequestController when promoting an approved
-  // SellerRequest into a real User: that password is already bcrypt-hashed
-  // (hashed once, at application time), so re-hashing it here would hash
-  // it a second time and permanently lock the new admin out of their own
-  // account. Set user.$locals.skipPasswordHash = true before .save() to
-  // insert a pre-hashed value as-is.
-  if (this.$locals.skipPasswordHash) return next();
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
+function formatUserDoc(doc, { includePassword = false } = {}) {
+  if (!doc) return null;
+  const data = typeof doc.data === "function" ? doc.data() : doc;
+  const id = doc.id || data.id || data._id;
+  const user = { id, _id: id, ...data };
+  if (!includePassword) delete user.password;
+  return user;
+}
 
-userSchema.methods.comparePassword = function (candidate) {
-  return bcrypt.compare(candidate, this.password);
-};
+/**
+ * Create a new user document. Hashes the password unless skipHash is true.
+ * Returns the user object with `id` and `_id` fields.
+ */
+async function createUser({ name, email, password, role = "user", avatarUrl = "", isActive = true, skipHash = false }) {
+  if (!skipHash) {
+    const salt = await bcrypt.genSalt(10);
+    password = await bcrypt.hash(password, salt);
+  }
 
-userSchema.methods.toSafeObject = function () {
-  return {
-    id: this._id,
-    name: this.name,
-    email: this.email,
-    role: this.role,
-    avatarUrl: this.avatarUrl,
-    createdAt: this.createdAt,
+  const data = {
+    name: name.trim(),
+    email: email.toLowerCase().trim(),
+    password,
+    role,
+    avatarUrl,
+    isActive,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
-};
 
-module.exports = mongoose.model("User", userSchema);
+  const docRef = await usersRef.add(data);
+  return formatUserDoc({ id: docRef.id, ...data }, { includePassword: false });
+}
+
+/**
+ * Find a user by email. Optionally include the password field.
+ */
+async function findByEmail(email, { includePassword = false } = {}) {
+  const snap = await usersRef.where("email", "==", email.toLowerCase().trim()).limit(1).get();
+  if (snap.empty) return null;
+  return formatUserDoc(snap.docs[0], { includePassword });
+}
+
+/**
+ * Find a user by document ID. Password is excluded by default.
+ */
+async function findById(id, { includePassword = false } = {}) {
+  const doc = await usersRef.doc(id).get();
+  if (!doc.exists) return null;
+  return formatUserDoc(doc, { includePassword });
+}
+
+/**
+ * Compare a plaintext candidate with a bcrypt-hashed password.
+ */
+async function comparePassword(candidate, hashed) {
+  return bcrypt.compare(candidate, hashed);
+}
+
+/**
+ * Return a safe (no password) representation of a user object.
+ */
+function toSafeObject(user) {
+  const id = user.id || user._id;
+  return {
+    id,
+    _id: id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatarUrl: user.avatarUrl || "",
+    createdAt: user.createdAt,
+  };
+}
+
+/**
+ * Find users by roles (array). Returns safe objects.
+ */
+async function findByRoles(roles) {
+  const snap = await usersRef.where("role", "in", roles).orderBy("createdAt", "desc").get();
+  return snap.docs.map((doc) => formatUserDoc(doc, { includePassword: false }));
+}
+
+/**
+ * Update a user document by ID. Returns the updated user.
+ */
+async function updateById(id, updates) {
+  updates.updatedAt = new Date().toISOString();
+  await usersRef.doc(id).update(updates);
+  return findById(id);
+}
+
+/**
+ * Delete a user document by ID.
+ */
+async function deleteById(id) {
+  const user = await findById(id);
+  if (!user) return null;
+  await usersRef.doc(id).delete();
+  return user;
+}
+
+/**
+ * Delete all user documents (used by seed).
+ */
+async function deleteAll() {
+  const snap = await usersRef.get();
+  const batch = db.batch();
+  snap.docs.forEach((doc) => batch.delete(doc.ref));
+  await batch.commit();
+}
+
+module.exports = {
+  createUser,
+  findByEmail,
+  findById,
+  comparePassword,
+  toSafeObject,
+  findByRoles,
+  updateById,
+  deleteById,
+  deleteAll,
+};

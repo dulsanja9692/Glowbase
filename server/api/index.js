@@ -1,16 +1,8 @@
-// Vercel serverless entry point — connects to MongoDB once per cold start
-// and exports the Express app as a serverless function.
+// Vercel serverless entry point — initializes Firebase and exports the Express app
 require("dotenv").config();
-const connectDB = require("../src/config/db");
+require("../src/config/firebase");
 const app = require("../src/app");
 
-// Cache the DB connection across warm invocations
-let isConnected = false;
-
-module.exports = async (req, res) => {
-  if (!isConnected) {
-    await connectDB();
-    isConnected = true;
-  }
+module.exports = (req, res) => {
   return app(req, res);
 };

@@ -1,29 +1,91 @@
-const mongoose = require("mongoose");
+const { db } = require("../config/firebase");
 const bcrypt = require("bcryptjs");
 
-// A prospective seller's application to become an Admin. The applicant
-// sets their own name/email/password here (never typed by a Super
-// Admin). On approval, a real User with role "admin" is created using
-// these exact credentials; on approval or rejection, the request is
-// deleted so a plaintext-adjacent password is never kept around longer
-// than the review window (see sellerRequestController.js).
-const sellerRequestSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true, select: false },
-    businessName: { type: String, required: true, trim: true },
-    message: { type: String, default: "" },
-    status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
-  },
-  { timestamps: true }
-);
+const COLLECTION = "sellerRequests";
+const requestsRef = db.collection(COLLECTION);
 
-sellerRequestSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+function formatRequestDoc(doc, { includePassword = false } = {}) {
+  if (!doc) return null;
+  const data = typeof doc.data === "function" ? doc.data() : doc;
+  const id = doc.id || data.id || data._id;
+  const req = { id, _id: id, ...data };
+  if (!includePassword) delete req.password;
+  return req;
+}
+
+/**
+ * Create a new seller request. Hashes the password before storing.
+ */
+async function createRequest({ name, email, password, businessName, message = "" }) {
   const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
+  const hashedPassword = await bcrypt.hash(password, salt);
 
-module.exports = mongoose.model("SellerRequest", sellerRequestSchema);
+  const data = {
+    name: name.trim(),
+    email: email.toLowerCase().trim(),
+    password: hashedPassword,
+    businessName: businessName.trim(),
+    message,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  const docRef = await requestsRef.add(data);
+  return formatRequestDoc({ id: docRef.id, ...data });
+}
+
+/**
+ * Find pending requests.
+ */
+async function findPending() {
+  const snap = await requestsRef.where("status", "==", "pending").orderBy("createdAt", "desc").get();
+  return snap.docs.map((doc) => formatRequestDoc(doc, { includePassword: false }));
+}
+
+/**
+ * Find a request by ID. Optionally include password.
+ */
+async function findById(id, { includePassword = false } = {}) {
+  const doc = await requestsRef.doc(id).get();
+  if (!doc.exists) return null;
+  return formatRequestDoc(doc, { includePassword });
+}
+
+/**
+ * Find a pending request by email.
+ */
+async function findPendingByEmail(email) {
+  const snap = await requestsRef
+    .where("email", "==", email.toLowerCase().trim())
+    .where("status", "==", "pending")
+    .limit(1)
+    .get();
+  if (snap.empty) return null;
+  return formatRequestDoc(snap.docs[0]);
+}
+
+/**
+ * Delete a request by ID.
+ */
+async function deleteById(id) {
+  await requestsRef.doc(id).delete();
+}
+
+/**
+ * Delete all requests (used by seed).
+ */
+async function deleteAll() {
+  const snap = await requestsRef.get();
+  const batch = db.batch();
+  snap.docs.forEach((doc) => batch.delete(doc.ref));
+  await batch.commit();
+}
+
+module.exports = {
+  createRequest,
+  findPending,
+  findById,
+  findPendingByEmail,
+  deleteById,
+  deleteAll,
+};

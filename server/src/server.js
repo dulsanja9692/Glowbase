@@ -1,9 +1,8 @@
 require("dotenv").config();
+// Firebase initializes on first import of any model (via config/firebase.js)
+require("./config/firebase");
 const app = require("./app");
-const connectDB = require("./config/db");
 
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
-  app.listen(PORT, () => console.log(`GlowBase API running on http://localhost:${PORT}`));
-});
+app.listen(PORT, () => console.log(`GlowBase API running on http://localhost:${PORT}`));

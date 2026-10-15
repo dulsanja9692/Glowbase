@@ -15,3 +15,7 @@ server/uploads/*
 # OS files
 .DS_Store
 Thumbs.db
+
+# Firebase Service Account
+*serviceAccountKey*.json
+firebase-key*.json

@@ -18,7 +18,7 @@ async function protect(req, res, next) {
       return res.status(401).json({ message: "Account not found or disabled." });
     }
 
-    req.user = user; // full mongoose doc, role-checked downstream
+    req.user = user; // plain object with id, name, email, role, etc.
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid or expired token." });
