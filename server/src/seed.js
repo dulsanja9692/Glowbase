@@ -59,7 +59,7 @@ async function seed() {
   const firstProdId = products[0].id || products[0]._id;
   await Order.createOrder({
     customer: customerId,
-    items: [{ product: firstProdId, name: products[0].name, price: products[0].price, quantity: 2 }],
+    items: [{ product: firstProdId, name: products[0].name, price: products[0].price, quantity: 2, seller: admin1Id }],
     total: products[0].price * 2,
     shippingAddress: "No. 12, Flower Road, Colombo 07",
     payment: { method: "mock-card", status: "paid", reference: "MOCK-SEED-0001" },

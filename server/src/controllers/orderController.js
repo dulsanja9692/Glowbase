@@ -18,7 +18,16 @@ async function createOrder(req, res) {
       return res.status(400).json({ message: `${product.name} only has ${product.stock} in stock.` });
     }
     const pid = product.id || product._id;
-    resolvedItems.push({ product: pid, _id: pid, name: product.name, price: product.price, quantity: line.quantity });
+    const sellerId = typeof product.seller === "object" ? (product.seller.id || product.seller._id) : product.seller;
+
+    resolvedItems.push({
+      product: pid,
+      _id: pid,
+      name: product.name,
+      price: product.price,
+      quantity: line.quantity,
+      seller: sellerId,
+    });
     total += product.price * line.quantity;
     // Decrement stock
     await Product.updateById(pid, { stock: product.stock - line.quantity });
@@ -43,9 +52,24 @@ async function myOrders(req, res) {
   res.json({ orders });
 }
 
-// GET /api/orders  (admin, superadmin) - all orders for management
+// GET /api/orders  (admin, superadmin) - sellers only see orders containing their products
 async function listOrders(req, res) {
-  const orders = await Order.findAll();
+  let orders = await Order.findAll();
+  const userId = req.user.id || req.user._id;
+
+  // Sellers (admin) can ONLY see orders for products they sell
+  if (req.user.role === "admin") {
+    const sellerProducts = await Product.findBySeller(userId);
+    const sellerProductIds = new Set(sellerProducts.map((p) => p.id || p._id));
+
+    orders = orders.filter((o) => {
+      return o.items?.some((item) => {
+        const itemSeller = item.seller;
+        const itemProdId = typeof item.product === "object" ? (item.product.id || item.product._id) : item.product;
+        return itemSeller === userId || sellerProductIds.has(itemProdId);
+      });
+    });
+  }
 
   // Populate customer info
   const customerIds = [...new Set(orders.map((o) => o.customer))];
@@ -62,14 +86,34 @@ async function listOrders(req, res) {
   res.json({ orders: populated });
 }
 
-// PATCH /api/orders/:id/status  (admin, superadmin)
+// PATCH /api/orders/:id/status  (admin, superadmin) - sellers can only update their own orders
 async function updateStatus(req, res) {
   const { status } = req.body;
   const allowed = ["Processing", "Shipped", "Delivered", "Cancelled"];
   if (!allowed.includes(status)) return res.status(400).json({ message: "Invalid status." });
 
+  const existingOrder = await Order.findById(req.params.id);
+  if (!existingOrder) return res.status(404).json({ message: "Order not found." });
+
+  const userId = req.user.id || req.user._id;
+
+  // Sellers (admin) can ONLY update status if the order belongs to their products
+  if (req.user.role === "admin") {
+    const sellerProducts = await Product.findBySeller(userId);
+    const sellerProductIds = new Set(sellerProducts.map((p) => p.id || p._id));
+
+    const isSellerOrder = existingOrder.items?.some((item) => {
+      const itemSeller = item.seller;
+      const itemProdId = typeof item.product === "object" ? (item.product.id || item.product._id) : item.product;
+      return itemSeller === userId || sellerProductIds.has(itemProdId);
+    });
+
+    if (!isSellerOrder) {
+      return res.status(403).json({ message: "You can only update orders for your own products." });
+    }
+  }
+
   const order = await Order.updateStatus(req.params.id, status);
-  if (!order) return res.status(404).json({ message: "Order not found." });
   res.json({ order });
 }
 

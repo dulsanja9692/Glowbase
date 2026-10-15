@@ -48,14 +48,17 @@ async function updateProduct(req, res) {
   if (!product) return res.status(404).json({ message: "Product not found." });
 
   const userId = req.user.id || req.user._id;
-  const isOwner = product.seller === userId;
+  const sellerId = typeof product.seller === "object" ? (product.seller.id || product.seller._id) : product.seller;
+  const isOwner = sellerId === userId;
   if (req.user.role !== "superadmin" && !isOwner) {
     return res.status(403).json({ message: "You can only edit your own products." });
   }
 
   const updates = {};
-  const fields = ["name", "category", "price", "stock", "description"];
+  const fields = ["name", "category", "description"];
   fields.forEach((f) => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
+  if (req.body.price !== undefined) updates.price = Number(req.body.price);
+  if (req.body.stock !== undefined) updates.stock = Number(req.body.stock);
   if (req.file) updates.imageUrl = `/uploads/${req.file.filename}`;
   else if (req.body.imageUrl) updates.imageUrl = req.body.imageUrl;
 
@@ -69,7 +72,8 @@ async function deleteProduct(req, res) {
   if (!product) return res.status(404).json({ message: "Product not found." });
 
   const userId = req.user.id || req.user._id;
-  const isOwner = product.seller === userId;
+  const sellerId = typeof product.seller === "object" ? (product.seller.id || product.seller._id) : product.seller;
+  const isOwner = sellerId === userId;
   if (req.user.role !== "superadmin" && !isOwner) {
     return res.status(403).json({ message: "You can only delete your own products." });
   }

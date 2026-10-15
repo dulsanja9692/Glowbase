@@ -39,6 +39,11 @@ export default function OrdersTab() {
           </button>
         </div>
       ))}
+      {orders.length === 0 && (
+        <div className="px-4 py-8 text-center text-sm text-gray-400">
+          No orders received yet.
+        </div>
+      )}
       <div className="px-4 py-2.5 text-[11px] text-gray-400">Click a status to advance it.</div>
     </div>
   );

@@ -1,12 +1,31 @@
 import Link from "next/link";
 import { Sparkles, Instagram, Facebook, Twitter, MapPin, Phone, Mail } from "lucide-react";
-
-const COLS = [
-  { title: "Shop", items: [{ label: "All products", href: "/shop" }, { label: "Hair care", href: "/shop" }, { label: "Skin care", href: "/shop" }, { label: "Tools", href: "/shop" }] },
-  { title: "Company", items: [{ label: "About us", href: "/" }, { label: "Sellers program", href: "/sell" }, { label: "Careers", href: "/" }, { label: "Contact", href: "/" }] },
-];
+import { useAuth } from "../context/AuthContext";
 
 export default function Footer() {
+  const { user } = useAuth() || {};
+
+  const cols = [
+    {
+      title: "Shop",
+      items: [
+        { label: "All products", href: "/shop" },
+        { label: "Hair care", href: "/shop" },
+        { label: "Skin care", href: "/shop" },
+        { label: "Tools", href: "/shop" },
+      ],
+    },
+    {
+      title: "Company",
+      items: [
+        { label: "About us", href: "/" },
+        ...(user ? [] : [{ label: "Sellers program", href: "/sell" }]),
+        { label: "Careers", href: "/" },
+        { label: "Contact", href: "/" },
+      ],
+    },
+  ];
+
   return (
     <footer className="bg-black text-white mt-16">
       <div className="max-w-[1180px] mx-auto px-5 pt-12 pb-6 grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -28,7 +47,7 @@ export default function Footer() {
             ))}
           </div>
         </div>
-        {COLS.map((col) => (
+        {cols.map((col) => (
           <div key={col.title}>
             <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">{col.title}</div>
             <div className="flex flex-col gap-2">
@@ -47,7 +66,7 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <div className="border-t border-black-soft text-center py-4 text-xs text-gray-500">
+      <div className="border-t border-black-soft text-center py-4 text-xs text-gray-400">
         © 2026 GlowBase Retail. All rights reserved.
       </div>
     </footer>
