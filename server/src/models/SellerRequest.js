@@ -38,8 +38,9 @@ async function createRequest({ name, email, password, businessName, message = ""
  * Find pending requests.
  */
 async function findPending() {
-  const snap = await requestsRef.where("status", "==", "pending").orderBy("createdAt", "desc").get();
-  return snap.docs.map((doc) => formatRequestDoc(doc, { includePassword: false }));
+  const snap = await requestsRef.where("status", "==", "pending").get();
+  const list = snap.docs.map((doc) => formatRequestDoc(doc, { includePassword: false }));
+  return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 /**

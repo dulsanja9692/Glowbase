@@ -83,8 +83,9 @@ function toSafeObject(user) {
  * Find users by roles (array). Returns safe objects.
  */
 async function findByRoles(roles) {
-  const snap = await usersRef.where("role", "in", roles).orderBy("createdAt", "desc").get();
-  return snap.docs.map((doc) => formatUserDoc(doc, { includePassword: false }));
+  const snap = await usersRef.where("role", "in", roles).get();
+  const list = snap.docs.map((doc) => formatUserDoc(doc, { includePassword: false }));
+  return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 /**

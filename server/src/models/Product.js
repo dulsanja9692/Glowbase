@@ -58,23 +58,26 @@ async function insertMany(items) {
 }
 
 /**
- * Find all products, optionally filtered by category.
+ * Find all products, optionally filtered by category. Sorted in-memory to avoid index errors.
  */
 async function findAll(filter = {}) {
-  let query = productsRef.orderBy("createdAt", "desc");
+  let snap;
   if (filter.category) {
-    query = productsRef.where("category", "==", filter.category).orderBy("createdAt", "desc");
+    snap = await productsRef.where("category", "==", filter.category).get();
+  } else {
+    snap = await productsRef.get();
   }
-  const snap = await query.get();
-  return snap.docs.map((doc) => formatProductDoc(doc));
+  const list = snap.docs.map((doc) => formatProductDoc(doc));
+  return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 /**
- * Find products by seller ID.
+ * Find products by seller ID. Sorted in-memory to avoid index errors.
  */
 async function findBySeller(sellerId) {
-  const snap = await productsRef.where("seller", "==", sellerId).orderBy("createdAt", "desc").get();
-  return snap.docs.map((doc) => formatProductDoc(doc));
+  const snap = await productsRef.where("seller", "==", sellerId).get();
+  const list = snap.docs.map((doc) => formatProductDoc(doc));
+  return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 /**

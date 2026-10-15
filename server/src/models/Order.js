@@ -29,19 +29,21 @@ async function createOrder({ customer, items, total, shippingAddress = "", payme
 }
 
 /**
- * Find orders by customer ID.
+ * Find orders by customer ID. Sorted in-memory so no composite index is required.
  */
 async function findByCustomer(customerId) {
-  const snap = await ordersRef.where("customer", "==", customerId).orderBy("createdAt", "desc").get();
-  return snap.docs.map((doc) => formatOrderDoc(doc));
+  const snap = await ordersRef.where("customer", "==", customerId).get();
+  const list = snap.docs.map((doc) => formatOrderDoc(doc));
+  return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 /**
- * Find all orders (admin view).
+ * Find all orders (admin view). Sorted in-memory so no composite index is required.
  */
 async function findAll() {
-  const snap = await ordersRef.orderBy("createdAt", "desc").get();
-  return snap.docs.map((doc) => formatOrderDoc(doc));
+  const snap = await ordersRef.get();
+  const list = snap.docs.map((doc) => formatOrderDoc(doc));
+  return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 /**
