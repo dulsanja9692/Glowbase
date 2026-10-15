@@ -8,9 +8,18 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("glowbase_token") : null;
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
     api("/auth/me")
       .then((data) => setUser(data.user))
-      .catch(() => setUser(null))
+      .catch(() => {
+        clearToken();
+        setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
